@@ -63,3 +63,5 @@ Tab:AddSlider({
 		 game.Players.LocalPlayer.Character.Humanoid.JumpPower = x
 	end    
 })
+
+OrionLib:Init()
