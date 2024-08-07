@@ -1,0 +1,70 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Player = game.Players.LocalPlayer
+local Window = OrionLib:MakeWindow({Name = "Manny's Script", HidePremium = false, SaveConfig = true, IntroEnabled = false})
+
+OrionLib:MakeNotification({
+	Name = "Notification",
+	Content = "You are Logged in as"..Player.Name.." .",
+	Image = "rbxassetid://4483345998",
+	Time = 5
+})
+
+_G.Key = "manny_99124582"
+_G.KeyInput = "String"
+
+function MakeScriptHub()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/dogefriendyt/Doge-Hub/main/version/v1"))();
+end
+
+function CorrectKeyNotification()
+    OrionLib:MakeNotification({
+        Name = "Notification",
+        Content = "Success, loading script.",
+        Image = "rbxassetid://4483345998",
+        Time = 2
+    })
+end
+
+function InCorrectKeyNotification()
+    OrionLib:MakeNotification({
+        Name = "Notification",
+        Content = "Incorrect key.",
+        Image = "rbxassetid://4483345998",
+        Time = 2
+    })
+end
+
+
+local Tab = Window:MakeTab({
+	Name = "Key",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+Tab:AddTextbox({
+	Name = "Type key here...",
+	Default = "",
+	TextDisappear = true,
+	Callback = function(Value)
+		_G.KeyInput = Value
+	end	  
+})
+
+Tab:AddButton({
+	Name = "Check key",
+	Callback = function()
+      	if _G.KeyInput == _G.Key then
+        MakeScriptHub()
+        CorrectKeyNotification()
+        else
+            InCorrectKeyNotification()
+        end
+  	end    
+})
+
+Tab:AddButton({
+	Name = "Get key",
+	Callback = function()
+
+  	end    
+})
