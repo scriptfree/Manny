@@ -13,7 +13,7 @@ _G.Key = "manny_99124582"
 _G.KeyInput = "String"
 
 function MakeScriptHub()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/dogefriendyt/Doge-Hub/main/version/v1"))();
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptfree/Manny/main/Script"))();
 end
 
 function CorrectKeyNotification()
