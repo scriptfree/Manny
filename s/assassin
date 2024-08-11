@@ -1,0 +1,45 @@
+-- Teleport the player to each item in the "GhostCoins" folder and then back to the original position
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local function teleportToItems()
+    local workspace = game:GetService("Workspace")
+    local ghostCoinsFolder = workspace:FindFirstChild("GhostCoins")
+
+    if ghostCoinsFolder then
+        -- Save the original position
+        local originalPosition = humanoidRootPart.CFrame
+
+        for _, item in pairs(ghostCoinsFolder:GetChildren()) do
+            if item:IsA("Model") or item:IsA("BasePart") then
+                -- Calculate the position to teleport to the item
+                local targetPosition
+                if item:IsA("Model") then
+                    local primaryPart = item.PrimaryPart or item:FindFirstChildOfClass("BasePart")
+                    if primaryPart then
+                        targetPosition = primaryPart.Position
+                    else
+                        targetPosition = item:GetChildren()[1].Position
+                    end
+                else
+                    targetPosition = item.Position
+                end
+
+                -- Teleport the character to the item
+                humanoidRootPart.CFrame = CFrame.new(targetPosition)
+
+                -- Wait for a short time before moving to the next item
+                wait(0.1) -- Adjust the wait time as needed for the interaction
+            end
+        end
+
+        -- Teleport back to the original position
+        humanoidRootPart.CFrame = originalPosition
+    else
+        warn("GhostCoins folder not found in workspace")
+    end
+end
+
+teleportToItems()
