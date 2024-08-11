@@ -17,25 +17,275 @@ local Tab = Window:MakeTab({
                                           Tab:AddParagraph("Welcome to Manny's Script","This script only supports Murder Mystery 2.")
                                           Tab:AddLabel("Version 1.1")
 
+local function teleportToGunDropAndBack()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+
+    -- Find the Normal object and then the GunDrop part inside it
+    local normalFolder = workspace:FindFirstChild("Normal")
+    if normalFolder then
+        local gunDrop = normalFolder:FindFirstChild("GunDrop")
+
+        if gunDrop then
+            -- Save the player's current position
+            local savedPosition = rootPart.CFrame
+
+            -- Teleport to the GunDrop part
+            rootPart.CFrame = gunDrop.CFrame + Vector3.new(0, 2, 0) -- Teleport 3 units above the GunDrop part
+
+            -- Wait for a brief moment to ensure the teleport is registered
+            wait(0.1) -- Adjust the wait time as needed
+
+            -- Teleport back to the saved position
+            rootPart.CFrame = savedPosition
+        else
+            -- Display a notification if the GunDrop part is not found
+            game:GetService("StarterGui"):SetCore("SendNotification",{
+                Title = "Notification";
+                Text = "The gun has not been dropped yet.";
+                Duration = 2;
+            })
+        end
+    else
+        -- Display a notification if the Normal folder is not found
+        game:GetService("StarterGui"):SetCore("SendNotification",{
+            Title = "Notification";
+            Text = "The Normal folder is not found in the workspace.";
+            Duration = 2;
+        })
+    end
+end
+
+
+local function updateHighlight(player)
+    -- Check if the player has a character
+    if player.Character then
+        -- Find or create the highlight
+        local highlight = player.Character:FindFirstChild("Highlight")
+        if not highlight then
+            highlight = Instance.new("Highlight")
+            highlight.Name = "Highlight"
+            highlight.Parent = player.Character
+            highlight.OutlineTransparency = 0 -- Outline fully visible
+            highlight.FillTransparency = 0.5 -- Semi-transparent fill
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop -- Always visible
+        end
+        
+        -- Check the player's backpack and character for tools
+        local hasKnife = false
+        local hasGun = false
+        
+        if player.Backpack:FindFirstChild("Knife") or (player.Character and player.Character:FindFirstChild("Knife")) then
+            hasKnife = true
+        end
+        if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+            hasGun = true
+        end
+
+        -- Set the highlight color based on the tools
+        if hasKnife then
+            highlight.FillColor = Color3.new(1, 0, 0) -- Red fill color for Knife
+            highlight.OutlineColor = Color3.new(1, 0, 0) -- Red outline color for Knife
+        elseif hasGun then
+            highlight.FillColor = Color3.new(0, 0, 1) -- Blue fill color for Gun
+            highlight.OutlineColor = Color3.new(0, 0, 1) -- Blue outline color for Gun
+        else
+            highlight.FillColor = Color3.new(0.5, 0.5, 0.5) -- Grey fill color for others
+            highlight.OutlineColor = Color3.new(1, 1, 1) -- White outline color for others
+        end
+    end
+end
+
+-- Function to remove highlights from a specific player
+local function removeHighlight(player)
+    if player.Character then
+        local highlight = player.Character:FindFirstChild("Highlight")
+        if highlight then
+            highlight:Destroy()
+        end
+    end
+end
+
+-- Function to remove highlights from all players
+local function removeAllHighlights()
+    for _, player in pairs(game.Players:GetPlayers()) do
+        removeHighlight(player)
+    end
+end
+
+-- Function to update highlights for all players
+local function updateAllHighlights()
+    for _, player in pairs(game.Players:GetPlayers()) do
+        updateHighlight(player)
+    end
+end
+
+-- Function to set up event listeners for a player
+local function setupPlayer(player)
+    player.CharacterAdded:Connect(function()
+        -- Delay to ensure player's tools have loaded
+        wait(1)
+        
+        if getgenv().FLO then
+            -- Add/update the highlight for the new player's character
+            updateHighlight(player)
+        else
+            -- Remove the highlight if the toggle is off
+            removeHighlight(player)
+        end
+        
+        -- Update highlight if the player's backpack changes
+        player.Backpack.ChildAdded:Connect(function()
+            if getgenv().FLO then
+                updateHighlight(player)
+            else
+                removeHighlight(player)
+            end
+        end)
+        player.Backpack.ChildRemoved:Connect(function()
+            if getgenv().FLO then
+                updateHighlight(player)
+            else
+                removeHighlight(player)
+            end
+        end)
+    end)
+end
+
+-- Event listener for new players joining
+game.Players.PlayerAdded:Connect(function(player)
+    setupPlayer(player)
+end)
+
+-- Setup existing players
+for _, player in pairs(game.Players:GetPlayers()) do
+    setupPlayer(player)
+end
+
+
+
+
 local Tab = Window:MakeTab({
 	Name = "Main",
 	Icon = "rbxassetid://4483345998",
 	PremiumOnly = false
 })
 
-Tab:AddButton({
-	Name = "Launch",
-	Callback = function()
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/dogefriendyt/Doge-Hub/main/version/v1"))();
-  	end    
+
+Tab:AddToggle({
+	Name = "Esp",
+	Default = false,
+	Callback = function(t)
+		getgenv().FLO = t
+    if getgenv().FLO then
+        while getgenv().FLO do
+            updateAllHighlights()
+            wait(0.5)
+        end
+    else
+        removeAllHighlights()
+    end
+	end    
+})
+
+local bringEnemiesToggle = false
+local originalPositions = {}
+
+Tab:AddToggle({
+	Name = "Bring all (Murderer)",
+	Default = false,
+	Callback = function(t)
+		bringEnemiesToggle = t
+    getgenv().FLO = t -- Only update the global variable when this specific toggle is used
+
+    local function bringEnemies()
+        while bringEnemiesToggle do
+            local player = game.Players.LocalPlayer
+            local team = player.Team
+            local character = player.Character
+            local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                    if otherPlayer ~= player and otherPlayer.Character then
+                        local otherTeam = otherPlayer.Team
+                        local otherHumanoidRootPart = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+                        if otherHumanoidRootPart then
+                            if (team and otherTeam and team ~= otherTeam) or (not team and not otherTeam) then
+                                -- Store the original position if not already stored
+                                if not originalPositions[otherPlayer.UserId] then
+                                    originalPositions[otherPlayer.UserId] = otherHumanoidRootPart.CFrame
+                                end
+                                -- Calculate the position directly in front of the local player
+                                local offset = humanoidRootPart.CFrame.LookVector * 3 -- Adjust the distance if needed
+                                local newPosition = humanoidRootPart.Position + offset
+                                -- Set the position and orientation of the other player's HumanoidRootPart
+                                otherHumanoidRootPart.CFrame = CFrame.new(newPosition, humanoidRootPart.Position)
+                            end
+                        end
+                    end
+                end
+            end
+            wait(0.1) -- Adjust the wait time as needed
+        end
+        -- Return all players to their original positions
+        for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+            local originalCFrame = originalPositions[otherPlayer.UserId]
+            if originalCFrame and otherPlayer.Character then
+                local otherHumanoidRootPart = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if otherHumanoidRootPart then
+                    otherHumanoidRootPart.CFrame = originalCFrame
+                end
+            end
+        end
+        -- Clear the original positions table
+        originalPositions = {}
+    end
+    local function onPlayerAdded(player)
+        spawn(function()
+            while bringEnemiesToggle do
+                local localPlayer = game.Players.LocalPlayer
+                local localTeam = localPlayer.Team
+                local character = localPlayer.Character
+                local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+                if humanoidRootPart and player.Character then
+                    local otherTeam = player.Team
+                    local otherHumanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+                    if otherHumanoidRootPart then
+                        if (localTeam and otherTeam and localTeam ~= otherTeam) or (not localTeam and not otherTeam) then
+                            -- Store the original position if not already stored
+                            if not originalPositions[player.UserId] then
+                                originalPositions[player.UserId] = otherHumanoidRootPart.CFrame
+                            end
+                            -- Calculate the position directly in front of the local player
+                            local offset = humanoidRootPart.CFrame.LookVector * 10 -- Adjust the distance if needed
+                            local newPosition = humanoidRootPart.Position + offset
+                            -- Set the position and orientation of the other player's HumanoidRootPart
+                            otherHumanoidRootPart.CFrame = CFrame.new(newPosition, humanoidRootPart.Position)
+                        end
+                    end
+                end
+                wait(0.1) -- Adjust the wait time as needed
+            end
+        end)
+    end
+    if bringEnemiesToggle then
+        spawn(function()
+            bringEnemies()
+        end)
+    end
+    game.Players.PlayerAdded:Connect(onPlayerAdded)
+
+	end    
 })
 
 Tab:AddButton({
-	Name = "Supported Games List",
+	Name = "Teleport to gun",
 	Callback = function()
-		setclipboard("https://raw.githubusercontent.com/dogefriendyt/Doge-Hub/main/list")
+      		teleportToGunDropAndBack()
   	end    
 })
+
 
 
 Tab:AddSlider({
@@ -51,17 +301,5 @@ Tab:AddSlider({
 	end    
 })
 
-Tab:AddSlider({
-	Name = "Jump Power",
-	Min = 0,
-	Max = 150,
-	Default = 50,
-	Color = Color3.fromRGB(255,255,255),
-	Increment = 1,
-	ValueName = "Power",
-	Callback = function(x)
-		 game.Players.LocalPlayer.Character.Humanoid.JumpPower = x
-	end    
-})
 
 OrionLib:Init()
