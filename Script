@@ -308,13 +308,6 @@ Tab:AddToggle({
 	end    
 })
 
-local Tab = Window:MakeTab({
-	Name = "Main",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
-})
-
-
 Tab:AddToggle({
 	Name = "Coin autofarm",
 	Default = false,
