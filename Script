@@ -51,7 +51,7 @@ local function teleportToGunDropAndBack()
         -- Display a notification if the Normal folder is not found
         game:GetService("StarterGui"):SetCore("SendNotification",{
             Title = "Notification";
-            Text = "The Normal folder is not found in the workspace.";
+            Text = "The gun has not been dropped yet.";
             Duration = 2;
         })
     end
