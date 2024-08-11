@@ -83,17 +83,21 @@ Tab:AddButton({
 
 
 
-Tab:AddSlider({
-	Name = "Walkspeed",
-	Min = 16,
-	Max = 30,
-	Default = 16,
-	Color = Color3.fromRGB(255,255,255),
-	Increment = 1,
-	ValueName = "Speed",
-	Callback = function(s)
-		game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = s
-	end    
+Tab:AddToggle({
+    Name = "Sprint",
+    Default = false,
+    Callback = function(t)
+        getgenv().FLO = t
+        spawn(function()
+            while getgenv().FLO do
+                -- Set walk speed to 30 when toggled on
+                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 30
+                wait(1) -- Check every second while the toggle is on
+            end
+            -- Set walk speed to 16 when toggled off
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+        end)
+    end    
 })
 
 
