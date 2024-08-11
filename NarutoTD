@@ -100,5 +100,12 @@ Tab:AddToggle({
     end    
 })
 
+Tab:AddButton({
+	Name = "Destroy GUI",
+	Callback = function()
+      		OrionLib:Destroy()
+  	end    
+})
+
 
 OrionLib:Init()
