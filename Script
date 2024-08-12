@@ -65,20 +65,23 @@ OrionLib:MakeNotification({
 end
 end
 
+local FLO = false
+
 local function updateHighlight(player)
-    if player.Character then
-        local highlight = player.Character:FindFirstChild("Highlight")
+    if player.Character and player ~= game.Players.LocalPlayer then
+        local character = player.Character
+        local highlight = character:FindFirstChild("Highlight")
         if not highlight then
             highlight = Instance.new("Highlight")
             highlight.Name = "Highlight"
-            highlight.Parent = player.Character
+            highlight.Parent = character
             highlight.OutlineTransparency = 0
             highlight.FillTransparency = 0.5
             highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
         end
 
-        local hasKnife = player.Backpack:FindFirstChild("Knife") or (player.Character and player.Character:FindFirstChild("Knife"))
-        local hasGun = player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun"))
+        local hasKnife = player.Backpack:FindFirstChild("Knife") or (character and character:FindFirstChild("Knife"))
+        local hasGun = player.Backpack:FindFirstChild("Gun") or (character and character:FindFirstChild("Gun"))
 
         if hasKnife then
             highlight.FillColor = Color3.new(1, 0, 0)
@@ -93,50 +96,29 @@ local function updateHighlight(player)
     end
 end
 
-local function removeHighlight(player)
-    if player.Character then
-        local highlight = player.Character:FindFirstChild("Highlight")
-        if highlight then
-            highlight:Destroy()
-        end
-    end
-end
-
-local function removeAllHighlights()
-    for _, player in pairs(game.Players:GetPlayers()) do
-        removeHighlight(player)
-    end
-end
-
-local function updateAllHighlights()
-    for _, player in pairs(game.Players:GetPlayers()) do
-        updateHighlight(player)
-    end
-end
-
 local function setupPlayer(player)
-    player.CharacterAdded:Connect(function()
-        if getgenv().FLO then
+    local function onCharacterAdded(character)
+        if FLO and player ~= game.Players.LocalPlayer then
             updateHighlight(player)
-        else
-            removeHighlight(player)
         end
 
         player.Backpack.ChildAdded:Connect(function()
-            if getgenv().FLO then
+            if FLO and player ~= game.Players.LocalPlayer then
                 updateHighlight(player)
-            else
-                removeHighlight(player)
             end
         end)
         player.Backpack.ChildRemoved:Connect(function()
-            if getgenv().FLO then
+            if FLO and player ~= game.Players.LocalPlayer then
                 updateHighlight(player)
-            else
-                removeHighlight(player)
             end
         end)
-    end)
+    end
+
+    player.CharacterAdded:Connect(onCharacterAdded)
+    -- Handle case where player might already have a character
+    if player.Character then
+        onCharacterAdded(player.Character)
+    end
 end
 
 game.Players.PlayerAdded:Connect(function(player)
@@ -146,6 +128,7 @@ end)
 for _, player in pairs(game.Players:GetPlayers()) do
     setupPlayer(player)
 end
+
 
 local Tab = Window:MakeTab({
 Name = "Main",
@@ -157,11 +140,16 @@ Tab:AddToggle({
 Name = "ESP",
 Default = false,
 Callback = function(t)
-    getgenv().FLO = t
-    if getgenv().FLO then
-        updateAllHighlights()
-    else
-        removeAllHighlights()
+    FLO = t
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if FLO and player ~= game.Players.LocalPlayer then
+            updateHighlight(player)
+        else
+            local highlight = player.Character and player.Character:FindFirstChild("Highlight")
+            if highlight then
+                highlight:Destroy()
+            end
+        end
     end
 end    
 })
@@ -271,7 +259,7 @@ end
 Tab:AddSlider({
 Name = "Walkspeed",
 Min = 16,
-Max = 30,
+Max = 25,
 Default = 16,
 Color = Color3.fromRGB(255,255,255),
 Increment = 1,
