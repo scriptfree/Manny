@@ -1,53 +1,52 @@
-local OrionLib = loadstring(game:HttpGet"https://raw.githubusercontent.com/3aze/LTS/main/lib/orion.lua")()
-local Window = OrionLib:MakeWindow({Name = "MM2 / Fusion Services",HidePremium = false,IntroEnabled = false,SaveConfig = nil})
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({Name = "MM2 / Fusion Services", HidePremium = false, IntroEnabled = false, SaveConfig = nil})
+
+OrionLib:MakeNotification({
+    Name = "Notification",
+    Content = "Successfully loaded.",
+    Image = "rbxassetid://17829956110",
+    Time = 3
+})
 
 local collectedCoins = {}
 
 local function teleportToCoins()
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    local rootPart = character:WaitForChild("HumanoidRootPart")
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
 
-    local coins = workspace:GetDescendants()
-    local foundCoin = false
+local coins = workspace:GetDescendants()
+local foundCoin = false
 
-    for _, item in ipairs(coins) do
-        if item:IsA("BasePart") and item.Name == "Coin_Server" and not collectedCoins[item] then
-            rootPart.CFrame = item.CFrame + Vector3.new(0, 3, 0)
-            collectedCoins[item] = true
-            foundCoin = true
-            wait(0.5)
-            break
-        end
-    end
-
-    if foundCoin then
-        rootPart.CFrame = CFrame.new(-95.58431243896484, 152.73521423339844, 105.27819061279297)
+for _, item in ipairs(coins) do
+    if item:IsA("BasePart") and item.Name == "Coin_Server" and not collectedCoins[item] then
+        rootPart.CFrame = item.CFrame + Vector3.new(0, 3, 0)
+        collectedCoins[item] = true
+        foundCoin = true
+        wait(0.5)
+        break
     end
 end
 
+if foundCoin then
+    rootPart.CFrame = CFrame.new(-95.58431243896484, 152.73521423339844, 105.27819061279297)
+end
+end
+
 local function teleportToGunDropAndBack()
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    local rootPart = character:WaitForChild("HumanoidRootPart")
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
 
-    local normalFolder = workspace:FindFirstChild("Normal")
-    if normalFolder then
-        local gunDrop = normalFolder:FindFirstChild("GunDrop")
+local normalFolder = workspace:FindFirstChild("Normal")
+if normalFolder then
+    local gunDrop = normalFolder:FindFirstChild("GunDrop")
 
-        if gunDrop then
-            local savedPosition = rootPart.CFrame
-            rootPart.CFrame = gunDrop.CFrame + Vector3.new(0, 2, 0)
-            wait(0.1)
-            rootPart.CFrame = savedPosition
-        else
-        OrionLib:MakeNotification({
-            Name = "Notification",
-            Content = "The gun has not been dropped.",
-            Image = "rbxassetid://17829955945",
-            Time = 3
-        })
-        end
+    if gunDrop then
+        local savedPosition = rootPart.CFrame
+        rootPart.CFrame = gunDrop.CFrame + Vector3.new(0, 2, 0)
+        wait(0.1)
+        rootPart.CFrame = savedPosition
     else
     OrionLib:MakeNotification({
         Name = "Notification",
@@ -56,6 +55,14 @@ local function teleportToGunDropAndBack()
         Time = 3
     })
     end
+else
+OrionLib:MakeNotification({
+    Name = "Notification",
+    Content = "The gun has not been dropped.",
+    Image = "rbxassetid://17829955945",
+    Time = 3
+})
+end
 end
 
 local function updateHighlight(player)
@@ -109,7 +116,6 @@ end
 
 local function setupPlayer(player)
     player.CharacterAdded:Connect(function()
-        wait(1)
         if getgenv().FLO then
             updateHighlight(player)
         else
@@ -142,174 +148,179 @@ for _, player in pairs(game.Players:GetPlayers()) do
 end
 
 local Tab = Window:MakeTab({
-    Name = "Main",
-    Icon = "rbxassetid://18777407436",
-    PremiumOnly = false
+Name = "Main",
+Icon = "rbxassetid://18777407436",
+PremiumOnly = false
 })
 
 Tab:AddToggle({
-    Name = "ESP",
-    Default = false,
-    Callback = function(t)
-        getgenv().FLO = t
-        if getgenv().FLO then
-            while getgenv().FLO do
-                updateAllHighlights()
-                wait(0.5)
-            end
-        else
-            removeAllHighlights()
-        end
-    end    
+Name = "ESP",
+Default = false,
+Callback = function(t)
+    getgenv().FLO = t
+    if getgenv().FLO then
+        updateAllHighlights()
+    else
+        removeAllHighlights()
+    end
+end    
 })
 
 local bringEnemiesToggle = false
 local originalPositions = {}
 
 Tab:AddToggle({
-    Name = "Bring All",
-    Default = false,
-    Callback = function(t)
-        bringEnemiesToggle = t
-        getgenv().FLO = t
+Name = "Bring All",
+Default = false,
+Callback = function(t)
+    bringEnemiesToggle = t
+    getgenv().FLO = t
 
-        local function bringEnemies()
-            while bringEnemiesToggle do
-                local player = game.Players.LocalPlayer
-                local team = player.Team
-                local character = player.Character
-                local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
-                if humanoidRootPart then
-                    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
-                        if otherPlayer ~= player and otherPlayer.Character then
-                            local otherTeam = otherPlayer.Team
-                            local otherHumanoidRootPart = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
-                            if otherHumanoidRootPart then
-                                if (team and otherTeam and team ~= otherTeam) or (not team and not otherTeam) then
-                                    if not originalPositions[otherPlayer.UserId] then
-                                        originalPositions[otherPlayer.UserId] = otherHumanoidRootPart.CFrame
-                                    end
-                                    local offset = humanoidRootPart.CFrame.LookVector * 3
-                                    local newPosition = humanoidRootPart.Position + offset
-                                    otherHumanoidRootPart.CFrame = CFrame.new(newPosition, humanoidRootPart.Position)
-                                end
-                            end
-                        end
-                    end
-                end
-                wait(0.1)
-            end
-            for _, otherPlayer in pairs(game.Players:GetPlayers()) do
-                local originalCFrame = originalPositions[otherPlayer.UserId]
-                if originalCFrame and otherPlayer.Character then
-                    local otherHumanoidRootPart = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
-                    if otherHumanoidRootPart then
-                        otherHumanoidRootPart.CFrame = originalCFrame
-                    end
-                end
-            end
-            originalPositions = {}
-        end
-        local function onPlayerAdded(player)
-            spawn(function()
-                while bringEnemiesToggle do
-                    local localPlayer = game.Players.LocalPlayer
-                    local localTeam = localPlayer.Team
-                    local character = localPlayer.Character
-                    local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
-                    if humanoidRootPart and player.Character then
-                        local otherTeam = player.Team
-                        local otherHumanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+    local function bringEnemies()
+        while bringEnemiesToggle do
+            local player = game.Players.LocalPlayer
+            local team = player.Team
+            local character = player.Character
+            local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                    if otherPlayer ~= player and otherPlayer.Character then
+                        local otherTeam = otherPlayer.Team
+                        local otherHumanoidRootPart = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
                         if otherHumanoidRootPart then
-                            if (localTeam and otherTeam and localTeam ~= otherTeam) or (not localTeam and not otherTeam) then
-                                if not originalPositions[player.UserId] then
-                                    originalPositions[player.UserId] = otherHumanoidRootPart.CFrame
+                            if (team and otherTeam and team ~= otherTeam) or (not team and not otherTeam) then
+                                if not originalPositions[otherPlayer.UserId] then
+                                    originalPositions[otherPlayer.UserId] = otherHumanoidRootPart.CFrame
                                 end
-                                local offset = humanoidRootPart.CFrame.LookVector * 10
+                                local offset = humanoidRootPart.CFrame.LookVector * 3
                                 local newPosition = humanoidRootPart.Position + offset
                                 otherHumanoidRootPart.CFrame = CFrame.new(newPosition, humanoidRootPart.Position)
                             end
                         end
                     end
-                    wait(0.1)
                 end
-            end)
+            end
+            wait(0.1)
         end
-        if bringEnemiesToggle then
-            spawn(function()
-                bringEnemies()
-            end)
+        for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+            local originalCFrame = originalPositions[otherPlayer.UserId]
+            if originalCFrame and otherPlayer.Character then
+                local otherHumanoidRootPart = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if otherHumanoidRootPart then
+                    otherHumanoidRootPart.CFrame = originalCFrame
+                end
+            end
         end
-        game.Players.PlayerAdded:Connect(onPlayerAdded)
-    end    
-})
-
-Tab:AddToggle({
-    Name = "Coin Autofarm",
-    Default = false,
-    Callback = function(t)
-        getgenv().FLO = t
+        originalPositions = {}
+    end
+    local function onPlayerAdded(player)
         spawn(function()
-            while getgenv().FLO do
-                teleportToCoins()
-                wait(2)
+            while bringEnemiesToggle do
+                local localPlayer = game.Players.LocalPlayer
+                local localTeam = localPlayer.Team
+                local character = localPlayer.Character
+                local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+                if humanoidRootPart and player.Character then
+                    local otherTeam = player.Team
+                    local otherHumanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+                    if otherHumanoidRootPart then
+                        if (localTeam and otherTeam and localTeam ~= otherTeam) or (not localTeam and not otherTeam) then
+                            if not originalPositions[player.UserId] then
+                                originalPositions[player.UserId] = otherHumanoidRootPart.CFrame
+                            end
+                            local offset = humanoidRootPart.CFrame.LookVector * 10
+                            local newPosition = humanoidRootPart.Position + offset
+                            otherHumanoidRootPart.CFrame = CFrame.new(newPosition, humanoidRootPart.Position)
+                        end
+                    end
+                end
+                wait(0.1)
             end
         end)
     end
+    if bringEnemiesToggle then
+        spawn(function()
+            bringEnemies()
+        end)
+    end
+    game.Players.PlayerAdded:Connect(onPlayerAdded)
+end    
+})
+
+Tab:AddToggle({
+Name = "Coin Autofarm",
+Default = false,
+Callback = function(t)
+    getgenv().FLO = t
+    spawn(function()
+        while getgenv().FLO do
+            teleportToCoins()
+            wait(2)
+        end
+    end)
+end
 })
 
 Tab:AddButton({
-    Name = "Teleport to Gun",
-    Callback = function()
-        teleportToGunDropAndBack()
-    end
+Name = "Teleport to Gun",
+Callback = function()
+    teleportToGunDropAndBack()
+end
 })
 
 Tab:AddSlider({
-    Name = "Walkspeed",
-    Min = 16,
-    Max = 30,
-    Default = 16,
-    Color = Color3.fromRGB(255,255,255),
-    Increment = 1,
-    ValueName = "Speed",
-    Callback = function(s)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = s
-    end    
+Name = "Walkspeed",
+Min = 16,
+Max = 30,
+Default = 16,
+Color = Color3.fromRGB(255,255,255),
+Increment = 1,
+ValueName = "Speed",
+Callback = function(s)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = s
+end    
 })
 
 local Tab = Window:MakeTab({Name = "Credits",Icon = "rbxassetid://18719810809",PremiumOnly = false})
 
-Tab:AddLabel("Thank you for purchasing our script!")
+Tab:AddParagraph("Thank you for buying our script!","We greatly appreciate your support and for purchasing our script.")
 
 Tab:AddButton({
-    Name = "Discord Invite",
-    Callback = function()
-        setclipboard("https://discord.gg/Cs6vJNvREc")
+Name = "Discord Invite",
+Callback = function()
+    setclipboard("https://discord.gg/Cs6vJNvREc")
 
-            OrionLib:MakeNotification({
-                Name = "Notification",
-                Content = "Copied invite.",
-                Image = "rbxassetid://17829956110"
-            })
-    end
+        OrionLib:MakeNotification({
+            Name = "Notification",
+            Content = "Copied invite.",
+            Image = "rbxassetid://17829956110"
+
+        })
+
+end
 })
-Tab:AddLabel("Made by:")
-Tab:AddLabel("1. Lyrical")
-Tab:AddLabel("2. Xubs")
+
+Tab:AddLabel("Developers")
+
+Tab:AddParagraph("Xubs","Discord: nnty.")
+
+Tab:AddParagraph("Lyrical","Discord: 6wand")
 
 local Tab = Window:MakeTab({Name = "Exit",Icon = "rbxassetid://9405925508",PremiumOnly = false})
 
 Tab:AddButton({
-    Name = "Close UI",
-    Callback = function()
-            OrionLib:MakeNotification({
-                Name = "Notification",
-                Content = "Closing UI...",
-                Image = "rbxassetid://17829955945"
-            })
-            wait(1)
-            OrionLib:Destroy()
+Name = "Close UI",
+Callback = function()
+        OrionLib:MakeNotification({
+            Name = "Notification",
+            Content = "Closing UI...",
+            Image = "rbxassetid://9405925508",
+            Time = 2
+        })
+        wait(1)
+        OrionLib:Destroy()
 
-    end
+end
 })
+
+OrionLib:Init()
