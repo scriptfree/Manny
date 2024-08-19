@@ -1,0 +1,136 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({Name = "MM2 / Fusion Services", HidePremium = false, IntroEnabled = false, SaveConfig = nil})
+
+
+
+OrionLib:MakeNotification({
+    Name = "Notification",
+    Content = "Successfully loaded.",
+    Image = "rbxassetid://17829956110",
+    Time = 3
+})
+
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+local flying = false
+local flySpeed = 50
+local flyControl
+
+local function startFlying()
+    flying = true
+    flyControl = Instance.new("BodyVelocity")
+    flyControl.Velocity = Vector3.new(0, 0, 0)
+    flyControl.MaxForce = Vector3.new(4000, 4000, 4000)
+    flyControl.Parent = HumanoidRootPart
+    Humanoid.PlatformStand = true
+
+    RunService.RenderStepped:Connect(function()
+        if not flying then return end
+        local moveDirection = Vector3.new(0, 0, 0)
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveDirection = moveDirection + (workspace.CurrentCamera.CFrame.LookVector * flySpeed)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveDirection = moveDirection - (workspace.CurrentCamera.CFrame.LookVector * flySpeed)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveDirection = moveDirection - (workspace.CurrentCamera.CFrame.RightVector * flySpeed)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveDirection = moveDirection + (workspace.CurrentCamera.CFrame.RightVector * flySpeed)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            moveDirection = moveDirection + Vector3.new(0, flySpeed, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            moveDirection = moveDirection - Vector3.new(0, flySpeed, 0)
+        end
+        flyControl.Velocity = moveDirection
+        
+        -- Make the character face the camera direction
+        local cameraDirection = workspace.CurrentCamera.CFrame.LookVector
+        HumanoidRootPart.CFrame = CFrame.new(HumanoidRootPart.Position, HumanoidRootPart.Position + Vector3.new(cameraDirection.X, 0, cameraDirection.Z))
+    end)
+end
+
+local function stopFlying()
+    flying = false
+    if flyControl then
+        flyControl:Destroy()
+    end
+    Humanoid.PlatformStand = false
+end
+
+local function stopFlying()
+    flying = false
+    if flyControl then
+        flyControl:Destroy()
+    end
+    Humanoid.PlatformStand = false
+end
+
+
+
+
+local Tab = Window:MakeTab({
+Name = "Main",
+Icon = "rbxassetid://18777407436",
+PremiumOnly = false
+})
+
+Tab:AddToggle({
+    Name = "Fly",
+    Default = false,
+    Callback = function(t)
+        if t then
+            startFlying()
+        else
+            stopFlying()
+        end
+    end    
+})
+
+Tab:AddSlider({
+Name = "Walkspeed",
+Min = 16,
+Max = 100,
+Default = 16,
+Color = Color3.fromRGB(255,255,255),
+Increment = 1,
+ValueName = "Speed",
+Callback = function(s)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = s
+end    
+})
+
+local Tab = Window:MakeTab({Name = "Credits",Icon = "rbxassetid://18719810809",PremiumOnly = false})
+
+Tab:AddLabel("Developer")
+
+Tab:AddParagraph("Xubs","Discord: nnty.")
+
+
+local Tab = Window:MakeTab({Name = "Exit",Icon = "rbxassetid://9405925508",PremiumOnly = false})
+
+Tab:AddButton({
+Name = "Close UI",
+Callback = function()
+        OrionLib:MakeNotification({
+            Name = "Notification",
+            Content = "Closing UI...",
+            Image = "rbxassetid://9405925508",
+            Time = 2
+        })
+        wait(1)
+        OrionLib:Destroy()
+
+end
+})
+
+OrionLib:Init()
