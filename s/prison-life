@@ -7,43 +7,62 @@ local Tab = Window:MakeTab({
 	PremiumOnly = false
 })
 
+getgenv().LoopTeleport = false -- Global variable to control the loop
+
 Tab:AddToggle({
-	Name = "Teleport Criminals",
+	Name = "Loop Teleport Criminals",
 	Default = false,
 	Callback = function(Value)
-		-- Check if the toggle is ON
 		if Value then
-			-- Get the "Criminals" team
-			local teamCriminals = game:GetService("Teams"):FindFirstChild("Criminals")
+			-- Enable the loop when toggled on
+			getgenv().LoopTeleport = true
+			
+			-- Start looping
+			spawn(function()
+				while getgenv().LoopTeleport do
+					-- Get the "Criminals" team
+					local teamCriminals = game:GetService("Teams"):FindFirstChild("Criminals")
 
-			-- Check if the team exists
-			if teamCriminals then
-				local yourPlayer = game.Players.LocalPlayer
-				local yourCharacter = yourPlayer.Character
-
-				-- Check if your character exists
-				if yourCharacter then
-					local yourPosition = yourCharacter:GetPrimaryPartCFrame().p
-					local offset = Vector3.new(5, 0, 0) -- Adjust offset to place players in front of your character
-
-					-- Loop through all players and teleport the ones on the "Criminals" team
-					for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-						if player.Team == teamCriminals and player.Character then
-							local criminalCharacter = player.Character
-							-- Teleport them in front of your character with a slight offset
-							criminalCharacter:SetPrimaryPartCFrame(CFrame.new(yourPosition + offset))
-							offset = offset + Vector3.new(5, 0, 0) -- Shift the next player slightly to avoid overlap
+					-- Check if the team exists
+					if teamCriminals then
+						-- Get a list of all players on the "Criminals" team
+						local criminals = {}
+						for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+							if player.Team == teamCriminals then
+								table.insert(criminals, player)
+							end
 						end
+
+						-- If there are any players on the "Criminals" team
+						if #criminals > 0 then
+							-- Pick a random player from the team
+							local randomCriminal = criminals[math.random(1, #criminals)]
+
+							-- Get the character of the random player
+							local criminalCharacter = randomCriminal.Character
+							local yourCharacter = game.Players.LocalPlayer.Character
+
+							-- Ensure the criminal's character and your character exist
+							if criminalCharacter and yourCharacter then
+								-- Teleport your character to the criminal
+								yourCharacter:MoveTo(criminalCharacter:GetPrimaryPartCFrame().p)
+							else
+								warn("Character not found.")
+							end
+						else
+							warn("No players found on the 'Criminals' team.")
+						end
+					else
+						warn("'Criminals' team not found.")
 					end
-				else
-					warn("Your character not found.")
+
+					-- Add a delay to avoid too fast looping (adjust delay as necessary)
+					wait(2) -- You can adjust this wait time to control how often the teleport happens (e.g., 2 seconds)
 				end
-			else
-				warn("'Criminals' team not found.")
-			end
+			end)
 		else
-			-- If the toggle is OFF, you can add any action here (optional)
-			print("Teleport disabled.")
+			-- Disable the loop when toggled off
+			getgenv().LoopTeleport = false
 		end
 	end
 })
