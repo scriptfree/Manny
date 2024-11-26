@@ -1,5 +1,5 @@
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-local Window = OrionLib:MakeWindow({Name = "MM2 / Fusion Services", HidePremium = false, IntroEnabled = false, SaveConfig = nil})
+local Window = OrionLib:MakeWindow({Name = "MVSD", HidePremium = false, IntroEnabled = false, SaveConfig = nil})
 
 OrionLib:MakeNotification({
     Name = "Notification",
